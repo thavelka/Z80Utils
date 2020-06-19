@@ -8,6 +8,7 @@
  * Helpful for developing and testing the CPU and I/O ports.
  * Designed to work with Arduino Uno without any extra ICs at the tradeoff of only six bits of addressing.
  * This means support for 64 lines each of RAM and ROM. RAM is selected by setting A15 high.
+ * To only emulate ROM and use a physical chip for RAM, set `emulateRam = false`.
  * 
  * Setup:
  * Address 0-5 to analog inputs 0-5
@@ -29,11 +30,11 @@
 /*
  * I/O checkout. Reads in byte from input port 0 and writes to output port 0. 
  */
-//byte ROM[64] = {
-//  0xDB, 0x00,       // IN A, 0: Load val from port 0 into accumulator (11011011, 00000000)
-//  0xD3, 0x00,       // OUT 0, A: Write accumulator to port 0 (11010011, 00000000)
-//  0xC3, 0x00, 0x00  // JP 0: Jump to start (11000011, 00000000, 00000000)
-//};
+byte ROM[64] = {
+  0xDB, 0x00,       // IN A, 0: Load val from port 0 into accumulator (11011011, 00000000)
+  0xD3, 0x00,       // OUT 0, A: Write accumulator to port 0 (11010011, 00000000)
+  0xC3, 0x00, 0x00  // JP 0: Jump to start (11000011, 00000000, 00000000)
+};
 
 /* 
  * I/O and math checkout. Reads in a value from input port 0, then repeatedly increments accumulator 
@@ -51,21 +52,23 @@
  * In between writing and reading, the accumulator is set to zero and written to port 0 to prove the
  * value was stored and retreived successfully from memory.
  */
-byte ROM[64] = {
-  0xDB, 0x00,        // IN A, 0: Load val from port 0 into accumulator (11011011, 00000000)
-  0x26, 0x80,        // LD H, 0x80: Load MSB of RAM start into register H (00100110, 10000000)
-  0x2E, 0x00,        // LD L, 0: Load LSB of RAM start into register L (00101110, 00000000)
-  0x77,              // LD (HL), A: Write val in accumulator to memory (01110111)
-  0x3E, 0x00,        // LD A, 0: Load zero into accumulator (00111110, 00000000)
-  0xD3, 0x00,        // OUT 0, A: Write accumulator to port 0 (11010011, 00000000)
-  0x7E,              // LD A, (HL): Read value from memory into accumulator (01111110)
-  0xD3, 0x00,        // OUT 0, A: Write accumulator to port 0 (11010011, 00000000)
-  0xC3, 0x00, 0x00   // JP 0: Jump to start (11000011, 00000000, 00000000)
-};
+//byte ROM[64] = {
+//  0xDB, 0x00,        // IN A, 0: Load val from port 0 into accumulator (11011011, 00000000)
+//  0x26, 0x80,        // LD H, 0x80: Load MSB of RAM start into register H (00100110, 10000000)
+//  0x2E, 0x00,        // LD L, 0: Load LSB of RAM start into register L (00101110, 00000000)
+//  0x77,              // LD (HL), A: Write val in accumulator to memory (01110111)
+//  0x3E, 0x00,        // LD A, 0: Load zero into accumulator (00111110, 00000000)
+//  0xD3, 0x00,        // OUT 0, A: Write accumulator to port 0 (11010011, 00000000)
+//  0x7E,              // LD A, (HL): Read value from memory into accumulator (01111110)
+//  0xD3, 0x00,        // OUT 0, A: Write accumulator to port 0 (11010011, 00000000)
+//  0xC3, 0x00, 0x00   // JP 0: Jump to start (11000011, 00000000, 00000000)
+//};
+
 //==============================================================================
 
 // 64 bytes of emulated ram
 byte RAM[64] = {};
+boolean emulateRam = true; //Set false to use physical RAM
 
 // Only used to prevent spamming console
 byte lastAddress = 0xFF;
@@ -90,6 +93,18 @@ void loop() {
   // Read in 6 bit address
   byte address = PINC;
   boolean ramSelect = digitalRead(RAM_SEL);
+
+  if (ramSelect && !emulateRam) {
+    // Use physical RAM, set pins to input and return
+    DDRB = B00000000;
+    DDRD = DDRD & B00000011;
+    
+    // Reset for logging purposes
+    lastAddress = 0xFF;
+    lastOpWr = false;
+    
+    return;
+  }
 
   // Determine if read, write, or neither
   boolean readMode = digitalRead(WR) && !digitalRead(MREQ);
