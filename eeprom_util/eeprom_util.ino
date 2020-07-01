@@ -92,6 +92,7 @@ void mainMenu() {
   Serial.println(MENU_PROMPT);
   while (Serial.available() == 0) {}
   char selection = Serial.read();
+  Serial.println(String("> ") + String(selection));
   switch(selection) {
     case '1':
       goToPage();
@@ -112,6 +113,7 @@ void mainMenu() {
       enableWrite();
       enableSDP();
       disableWrite();
+      Serial.println("\nEnabled SDP.\n");
       break;
     case '7':
       disableSDP();
@@ -263,6 +265,7 @@ void eraseChip() {
   writeByte(0x2AAA, 0x55);
   writeByte(0x5555, 0x10);
   disableWrite();
+  Serial.println("\nErased chip.\n");
 }
 
 // System utilities
@@ -364,6 +367,7 @@ void disableSDP() {
   writeByte(0x2AAA, 0x55);
   writeByte(0x5555, 0x20);
   disableWrite();
+  Serial.println("\nDisabled SDP.\n");
 }
 
 void writeData(byte data) {
