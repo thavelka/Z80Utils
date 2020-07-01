@@ -6,7 +6,7 @@
  * Description:
  * A sketch that can read, write, and clear up to a 64Kx8 parallel EEPROM using an Arduino Mega and
  * one octal latch, such as a 74HC574.
- * A compatible DIY EEPROM writer shield can be found at {link}.
+ * A compatible DIY EEPROM writer shield can be found here: https://thavelka.io/2020/07/eeprom-writer-arduino/
  * Although most EEPROMs should be compatible, ensure the software protection enable, disable, and erase
  * codes for your EEPROM match the ones in this sketch. See your EEPROM's data sheet for the codes.
  * 
