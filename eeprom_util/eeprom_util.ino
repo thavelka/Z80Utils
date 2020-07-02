@@ -195,8 +195,9 @@ void writeWord() {
 }
 
 void writePage() {
-  Serial.println("\n\nSet bytes, separated with commas (Max length = " + String(PAGE_SIZE) + ")");
-  Serial.println("Bytes can be written in hexadecimal with the format 0xFF or binary with the format 0b11111111");
+  Serial.println("\n\nSet bytes, separated with commas and/or spaces (Max length = " + String(PAGE_SIZE) + ")");
+  Serial.println("Bytes can be written in hexadecimal with the format 0xFF or binary with the format 0b11111111.");
+  Serial.println("Format will default to hexadecimal if no prefix present.");
   byte data[PAGE_SIZE];
   flushSerial();
   while(Serial.available() == 0) {}
@@ -412,12 +413,9 @@ long int parseIntString(const char* str) {
   if (len >= 2 && (strncmp(str,"0b", 2) == 0 || strncmp(str,"0B", 2) == 0)) {
     return strtol(&str[2], NULL, 2);
   }
-  if (len >= 1 && (strncmp(str,"b", 1) == 0 || strncmp(str,"B", 1) == 0)) {
-    return strtol(&str[1], NULL, 2);
-  }
 
-  // Default to dec
-  return strtol(str, NULL, 10);
+  // Default to hex
+  return strtol(str, NULL, 16);
 }
 
 void flushSerial() {
